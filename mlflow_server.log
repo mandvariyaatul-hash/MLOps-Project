@@ -1,0 +1,88 @@
+2026/04/19 12:48:26 INFO mlflow.store.db.utils: Creating initial MLflow database tables...
+2026/04/19 12:48:26 INFO mlflow.store.db.utils: Updating database tables
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+2026/04/19 12:48:26 ERROR mlflow.cli: Error initializing backend store
+2026/04/19 12:48:26 ERROR mlflow.cli: Can't locate revision identified by 'bda7b8c39065'
+Traceback (most recent call last):
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/script/base.py", line 254, in _catch_revision_errors
+    yield
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/script/base.py", line 462, in _upgrade_revs
+    for script in reversed(list(revs))
+                           ^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/script/revision.py", line 814, in iterate_revisions
+    revisions, heads = fn(
+                       ^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/script/revision.py", line 1475, in _collect_upgrade_revisions
+    current_revisions = self.get_revisions(lower)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/script/revision.py", line 542, in get_revisions
+    return sum([self.get_revisions(id_elem) for id_elem in id_], ())
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/script/revision.py", line 565, in get_revisions
+    return tuple(
+           ^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/script/revision.py", line 566, in <genexpr>
+    self._revision_for_ident(rev_id, branch_label)
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/script/revision.py", line 637, in _revision_for_ident
+    raise ResolutionError(
+alembic.script.revision.ResolutionError: No such revision or branch 'bda7b8c39065'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/anaconda3/lib/python3.12/site-packages/mlflow/cli.py", line 425, in server
+    initialize_backend_stores(backend_store_uri, registry_store_uri, default_artifact_root)
+  File "/opt/anaconda3/lib/python3.12/site-packages/mlflow/server/handlers.py", line 370, in initialize_backend_stores
+    _get_tracking_store(backend_store_uri, default_artifact_root)
+  File "/opt/anaconda3/lib/python3.12/site-packages/mlflow/server/handlers.py", line 347, in _get_tracking_store
+    _tracking_store = _tracking_store_registry.get_store(store_uri, artifact_root)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/mlflow/tracking/_tracking_service/registry.py", line 45, in get_store
+    return self._get_store_with_resolved_uri(resolved_store_uri, artifact_uri)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/mlflow/tracking/_tracking_service/registry.py", line 56, in _get_store_with_resolved_uri
+    return builder(store_uri=resolved_store_uri, artifact_uri=artifact_uri)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/mlflow/server/handlers.py", line 168, in _get_sqlalchemy_store
+    return SqlAlchemyStore(store_uri, artifact_uri)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/mlflow/store/tracking/sqlalchemy_store.py", line 176, in __init__
+    mlflow.store.db.utils._initialize_tables(self.engine)
+  File "/opt/anaconda3/lib/python3.12/site-packages/mlflow/store/db/utils.py", line 98, in _initialize_tables
+    _upgrade_db(engine)
+  File "/opt/anaconda3/lib/python3.12/site-packages/mlflow/store/db/utils.py", line 223, in _upgrade_db
+    command.upgrade(config, "heads")
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/command.py", line 406, in upgrade
+    script.run_env()
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/script/base.py", line 586, in run_env
+    util.load_python_file(self.dir, "env.py")
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/util/pyfiles.py", line 95, in load_python_file
+    module = load_module_py(module_id, path)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/util/pyfiles.py", line 113, in load_module_py
+    spec.loader.exec_module(module)  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/opt/anaconda3/lib/python3.12/site-packages/mlflow/store/db_migrations/env.py", line 84, in <module>
+    run_migrations_online()
+  File "/opt/anaconda3/lib/python3.12/site-packages/mlflow/store/db_migrations/env.py", line 78, in run_migrations_online
+    context.run_migrations()
+  File "<string>", line 8, in run_migrations
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/runtime/environment.py", line 946, in run_migrations
+    self.get_context().run_migrations(**kw)
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/runtime/migration.py", line 611, in run_migrations
+    for step in self._migrations_fn(heads, self):
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/command.py", line 395, in upgrade
+    return script._upgrade_revs(revision, rev)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/script/base.py", line 450, in _upgrade_revs
+    with self._catch_revision_errors(
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/opt/anaconda3/lib/python3.12/site-packages/alembic/script/base.py", line 286, in _catch_revision_errors
+    raise util.CommandError(resolution) from re
+alembic.util.exc.CommandError: Can't locate revision identified by 'bda7b8c39065'
