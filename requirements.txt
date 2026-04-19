@@ -1,7 +1,16 @@
-fastapi 
-uvicorn 
-scikit-learn 
-pandas 
-library 
-evidently 
-joblib
+# Web Server
+fastapi==0.110.0
+uvicorn==0.28.0
+
+# Data Science & ML
+pandas>=2.1.0
+numpy>=1.24.0
+scikit-learn>=1.4.0
+joblib>=1.3.0
+
+# MLOps & Monitoring
+evidently>=0.6.6
+pydantic>=2.6.0
+
+# Environment Handling (Optional but recommended)
+python-multipart
