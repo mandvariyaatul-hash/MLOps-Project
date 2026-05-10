@@ -1,0 +1,38 @@
+1. Case: Likely Healthy (Low Risk)
+
+{
+  "Pregnancies": 1,
+  "Glucose": 85.0,
+  "BloodPressure": 66.0,
+  "SkinThickness": 29.0,
+  "Insulin": 0.0,
+  "BMI": 26.6,
+  "DiabetesPedigreeFunction": 0.351,
+  "Age": 31
+}
+
+2. Case: Likely Diabetic (High Risk)
+
+{
+  "Pregnancies": 8,
+  "Glucose": 183.0,
+  "BloodPressure": 64.0,
+  "SkinThickness": 0.0,
+  "Insulin": 0.0,
+  "BMI": 23.3,
+  "DiabetesPedigreeFunction": 0.672,
+  "Age": 52
+}
+
+3. Case: High Pedigree / Borderline
+
+{
+  "Pregnancies": 2,
+  "Glucose": 120.0,
+  "BloodPressure": 80.0,
+  "SkinThickness": 35.0,
+  "Insulin": 150.0,
+  "BMI": 30.5,
+  "DiabetesPedigreeFunction": 1.200,
+  "Age": 25
+}
