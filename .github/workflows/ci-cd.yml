@@ -88,7 +88,7 @@ jobs:
             # Stop and clean up old container instances to free up resources
             sudo docker stop mlops-project || true
             sudo docker rm mlops-project || true
-            sudo docker system prune -af --volumes || true
+            sudo docker image prune -f || true            
             
             # Ensure host volume directories exist before running the container
             mkdir -p "${PWD}/drift_reports"
