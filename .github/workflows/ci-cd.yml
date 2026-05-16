@@ -89,6 +89,7 @@ jobs:
             # Pull and cycle the application container
             sudo docker stop mlops-project || true
             sudo docker rm mlops-project || true
+            sudo docker system prune -af --volumes || true
             
             mkdir -p $(pwd)/drift_reports
             touch $(pwd)/prediction_logs.csv
