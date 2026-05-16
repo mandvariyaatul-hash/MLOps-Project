@@ -44,7 +44,7 @@ jobs:
 
       - name: Set up SSH Key for EC2
         run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" | base64 --decode > deploy_key.pem
+          echo "${{ secrets.EC2_SSH_KEY }}" | base64 --decode --ignore-garbage > deploy_key.pem
           chmod 400 deploy_key.pem
 
       - name: Add EC2 host to known_hosts
