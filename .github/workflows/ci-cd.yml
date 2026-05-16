@@ -6,9 +6,11 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  # ==========================================
+  # JOB 1: Build the Docker image & push to ECR
+  # ==========================================
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -40,8 +42,13 @@ jobs:
           docker tag $ECR_REPOSITORY:$IMAGE_TAG $ECR_URL:$IMAGE_TAG
           docker push $ECR_URL:$IMAGE_TAG
 
-          echo "ECR_URL=$ECR_URL" >> $GITHUB_ENV
-
+  # ==========================================
+  # JOB 2: Connect via SSH & deploy on EC2
+  # ==========================================
+  deploy-to-ec2:
+    runs-on: ubuntu-latest
+    needs: build-and-push # 👈 Forces this job to wait until Job 1 finishes successfully
+    steps:
       - name: Set up SSH Key for EC2
         run: |
           cat << 'EOF' > deploy_key.pem
@@ -53,35 +60,38 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
-  
-      - name: Debug SSH
-        run: |
-          ssh -vvv -i deploy_key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }}  echo "It works!"
-      
+
       - name: Deploy Docker Container on EC2
         run: |
-          ssh -i deploy_key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }} << EOF
-            # Setup Docker
+          # 💡 Using single quotes 'EOF' prevents GitHub from parsing variables locally
+          ssh -i deploy_key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+            # Setup Docker daemon
             sudo yum update -y
             sudo yum install -y docker
             sudo service docker start
             sudo usermod -aG docker ec2-user
-      
-            # Export AWS credentials
-            export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-            export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            export AWS_REGION=${{ secrets.AWS_REGION }}
-            export ECR_URL=${{ secrets.ECR_URL }}
-      
-            # Login to ECR
-            aws ecr get-login-password --region \$AWS_REGION | docker login --username AWS --password-stdin \$ECR_URL
-
-            # Pull and run container
-            docker stop mlops-project || true
-            docker rm mlops-project || true
+         
+            # Recreate environment variables dynamically on the EC2 machine
+            AWS_REGION="${{ secrets.AWS_REGION }}"
+            ECR_REPOSITORY="${{ secrets.ECR_REPOSITORY }}"
             
-            docker pull \$ECR_URL:latest
-            docker run --restart=always -d --name mlops-project -p 8000:8000 -p 5000:5000 \$ECR_URL:latest
+            # Export AWS credentials to allow EC2 to talk to ECR
+            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            
+            # Calculate the full ECR Registry URL directly on the EC2 machine
+            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+            ECR_URL="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY"
+         
+            # Login to ECR inside EC2
+            aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $ECR_URL
+
+            # Pull and cycle the application container
+            sudo docker stop mlops-project || true
+            sudo docker rm mlops-project || true
+            
+            sudo docker pull $ECR_URL:latest
+            sudo docker run --restart=always -d --name mlops-project -p 8000:8000 -p 5000:5000 $ECR_URL:latest
           EOF
 
       - name: Show API Endpoint
