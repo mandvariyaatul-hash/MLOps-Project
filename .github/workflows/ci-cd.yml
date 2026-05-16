@@ -90,8 +90,17 @@ jobs:
             sudo docker stop mlops-project || true
             sudo docker rm mlops-project || true
             
-            sudo docker pull $ECR_URL:latest
-            sudo docker run --restart=always -d --name mlops-project -p 8000:8000 -p 5000:5000 $ECR_URL:latest
+            mkdir -p $(pwd)/drift_reports
+            touch $(pwd)/prediction_logs.csv
+            
+            # 7. Run the container with your volume mounts and ECR Image URL
+            sudo docker run --restart=always -d \
+              -p 8000:8000 \
+              -p 5000:5000 \
+              -v "$(pwd)/drift_reports:/app/drift_reports" \
+              -v "$(pwd)/prediction_logs.csv:/app/prediction_logs.csv" \
+              --name mlops-project $ECR_URL:latest
+            
           EOF
 
       - name: Show API Endpoint
