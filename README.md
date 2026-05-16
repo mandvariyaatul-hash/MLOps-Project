@@ -32,3 +32,6 @@ If any port is open, close it by using below command.
 ```
 lsof -ti:5000 | xargs kill -9 2>/dev/null
 ```
+
+### Use it with Public IP
+ec2-3-84-213-161.compute-1.amazonaws.com
