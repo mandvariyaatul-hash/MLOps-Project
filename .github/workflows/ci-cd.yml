@@ -64,9 +64,8 @@ jobs:
       - name: Deploy Docker Container on EC2
         run: |
           # 💡 Using single quotes 'EOF' prevents GitHub from parsing variables locally
-          ssh -i deploy_key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
-            # Setup Docker daemon
-            sudo yum update -y
+          ssh -v -i deploy_key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+            # Setup Docker daemon (Skipped yum update to speed up pipeline significantly)
             sudo yum install -y docker
             sudo service docker start
             sudo usermod -aG docker ec2-user
@@ -86,22 +85,25 @@ jobs:
             # Login to ECR inside EC2
             aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $ECR_URL
 
-            # Pull and cycle the application container
+            # Stop and clean up old container instances to free up resources
             sudo docker stop mlops-project || true
             sudo docker rm mlops-project || true
             sudo docker system prune -af --volumes || true
             
-            mkdir -p $(pwd)/drift_reports
-            touch $(pwd)/prediction_logs.csv
+            # Ensure host volume directories exist before running the container
+            mkdir -p "${PWD}/drift_reports"
+            touch "${PWD}/prediction_logs.csv"
             
-            # 7. Run the container with your volume mounts and ECR Image URL
+            # ✅ FIX: Explicitly pull the latest image from ECR after the cache prune
+            sudo docker pull $ECR_URL:latest
+            
+            # Run the container with volume mounts and dynamic ECR Image URL
             sudo docker run --restart=always -d \
               -p 8000:8000 \
               -p 5000:5000 \
-              -v "$(pwd)/drift_reports:/app/drift_reports" \
-              -v "$(pwd)/prediction_logs.csv:/app/prediction_logs.csv" \
+              -v "${PWD}/drift_reports:/app/drift_reports" \
+              -v "${PWD}/prediction_logs.csv:/app/prediction_logs.csv" \
               --name mlops-project $ECR_URL:latest
-            
           EOF
 
       - name: Show API Endpoint
