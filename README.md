@@ -11,7 +11,7 @@
 1. Clone project and run below commnads
 ```
 pip install -r requirements.txt
-mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlartifacts --host 127.0.0.1 --port 5000
+mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlartifacts --host 0.0.0.0 --port 5000
 python main.py
 
 2. Create Docker file

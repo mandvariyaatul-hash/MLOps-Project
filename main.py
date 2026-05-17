@@ -119,7 +119,7 @@ async def predict_ui(request: Request):
 async def train_model_ui(request: Request):
     try:
         # 1. Setup MLflow
-        mlflow.set_tracking_uri("http://127.0.0.1:5000")
+        mlflow.set_tracking_uri("http://0.0.0.0:5000")
         mlflow.set_experiment(MODEL_NAME)
         
         # 2. Prepare Data
@@ -155,7 +155,7 @@ async def train_model_ui(request: Request):
         reports = [f for f in os.listdir(REPORTS_DIR) if f.endswith(".html")]
         reports.sort(reverse=True)
         
-        client = MlflowClient(tracking_uri="http://127.0.0.1:5000")
+        client = MlflowClient(tracking_uri="http://0.0.0.0:5000")
         versions = client.search_model_versions(f"name='{MODEL_NAME}'")
 
         return templates.TemplateResponse("index.html", {
@@ -184,4 +184,4 @@ async def prediction_history(request: Request):
     })
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
