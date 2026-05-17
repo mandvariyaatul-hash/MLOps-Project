@@ -64,46 +64,45 @@ jobs:
       - name: Deploy Docker Container on EC2
         run: |
           # 💡 Using single quotes 'EOF' prevents GitHub from parsing variables locally
-          ssh -v -i deploy_key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
-            # Setup Docker daemon (Skipped yum update to speed up pipeline significantly)
-            sudo yum install -y docker
-            sudo service docker start
-            sudo usermod -aG docker ec2-user
-         
-            # Recreate environment variables dynamically on the EC2 machine
-            AWS_REGION="${{ secrets.AWS_REGION }}"
-            ECR_REPOSITORY="${{ secrets.ECR_REPOSITORY }}"
-            
-            # Export AWS credentials to allow EC2 to talk to ECR
-            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
-            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-            
-            # Calculate the full ECR Registry URL directly on the EC2 machine
-            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-            ECR_URL="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY"
-         
-            # Login to ECR inside EC2
-            aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $ECR_URL
+          ssh -i deploy_key.pem ec2-user@${{ secrets.EC2_PUBLIC_IP }}
+          # Setup Docker daemon (Skipped yum update to speed up pipeline significantly)
+          sudo yum install -y docker
+          service docker start
+       
+          # Recreate environment variables dynamically on the EC2 machine
+          AWS_REGION="${{ secrets.AWS_REGION }}"
+          ECR_REPOSITORY="${{ secrets.ECR_REPOSITORY }}"
+          
+          # Export AWS credentials to allow EC2 to talk to ECR
+          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          
+          # Calculate the full ECR Registry URL directly on the EC2 machine
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          ECR_URL="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY"
+       
+          # Login to ECR inside EC2
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
 
-            # Stop and clean up old container instances to free up resources
-            sudo docker stop mlops-project || true
-            sudo docker rm mlops-project || true
-            sudo docker image prune -f || true            
-            
-            # Ensure host volume directories exist before running the container
-            mkdir -p "${PWD}/drift_reports"
-            touch "${PWD}/prediction_logs.csv"
-            
-            # ✅ FIX: Explicitly pull the latest image from ECR after the cache prune
-            sudo docker pull $ECR_URL:latest
-            
-            # Run the container with volume mounts and dynamic ECR Image URL
-            sudo docker run --restart=always -d \
-              -p 8000:8000 \
-              -p 5000:5000 \
-              -v "${PWD}/drift_reports:/app/drift_reports" \
-              -v "${PWD}/prediction_logs.csv:/app/prediction_logs.csv" \
-              --name mlops-project $ECR_URL:latest
+          # Stop and clean up old container instances to free up resources
+          docker stop mlops-project || true
+          docker rm mlops-project || true
+          docker image prune -f || true            
+          
+          # Ensure host volume directories exist before running the container
+          mkdir -p "${PWD}/drift_reports"
+          touch "${PWD}/prediction_logs.csv"
+          
+          # ✅ FIX: Explicitly pull the latest image from ECR after the cache prune
+          docker pull $ECR_URL:latest
+          
+          # Run the container with volume mounts and dynamic ECR Image URL
+          docker run --restart=always -d \
+            -p 8000:8000 \
+            -p 5000:5000 \
+            -v "${PWD}/drift_reports:/app/drift_reports" \
+            -v "${PWD}/prediction_logs.csv:/app/prediction_logs.csv" \
+            --name mlops-project $ECR_URL:latest
           EOF
 
       - name: Show API Endpoint
