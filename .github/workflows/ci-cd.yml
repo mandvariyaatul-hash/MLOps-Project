@@ -102,7 +102,6 @@ jobs:
               -v "${PWD}/drift_reports:/app/drift_reports" \
               -v "${PWD}/prediction_logs.csv:/app/prediction_logs.csv" \
               --name mlops-project $ECR_URL:latest
-          EOF
 
       - name: Show API Endpoint
         run: |
